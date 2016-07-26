@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html ng-app="reddit">
+  <head>
+    <meta charset="utf-8">
+    <title>Reddit Clone</title>
+    <!-- Bootstrap and styling -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.4.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
+    <link rel="stylesheet" href="./style.css">
+  </head>
+
+<body ng-controller="mainController">
+  <nav class="navbar navbar-default">
+    <div class="container-fluid nav-container">
+      <div class="navbar-header">
+        <a class="navbar-brand" href="">Reddit Clone</a>
+      </div>
+      <!-- ADD POST -->
+      <ul class="nav navbar-nav">
+        <li><button ng-click='togglePostView()' type='button' class='btn btn-default navbar-btn'>Add a post &nbsp;&nbsp;<span class="glyphicon glyphicon-plus" aria-hidden="true"></span></button></li>
+      </ul>
+      <!-- SEARCH FORM -->
+      <div class="navbar-form navbar-left">
+        <div class="form-group">
+          <input type="text" class="form-control" placeholder="Search" ng-model='searchText'>
+        </div>
+      </div>
+      <!-- DROPDOWN -->
+      <ul class="nav navbar-nav">
+        <li class="dropdown">
+          Sort By:
+          <select ng-model='dropdown'>
+            <option value='score'>Votes</option>
+            <option value='date'>Date</option>
+            <option value='title'>Title</option>
+          </select>
+        </li>
+      </ul>
+    </div>
+  </nav>
+
+  <div class="container-fluid" ng-show="createPostView" id="post-view" ng-cloak>
+    <div class="row">
+      <div class="col-sm-8 post-view-design">
+        <div class="page-header"><h1 class="text-center">Add a Post</h1></div>
+
+        <form name="postForm" ng-submit="submitForm(postForm.$valid)" novalidate>
+          <!-- Title -->
+          <div class="form-group"
+          ng-class="{ 'has-error' : postForm.title.$invalid && !postForm.title.$pristine,
+          'has-success' : postForm.title.$vaild}">
+          <label>Title</label>
+          <input type="text" name="title" class="form-control" ng-model="post.title" ng-minlength="3" required>
+          </div>
+          <!-- Author -->
+          <div class="form-group"
+          ng-class="{ 'has-error' : postForm.author.$invalid && !postForm.author.$pristine,
+          'has-success' : postForm.author.$vaild}">
+          <label>Author</label>
+          <input type="text" name="author" class="form-control" ng-model="post.author" ng-minlength="3" ng-maxlength="30" required>
+          </div>
+          <!-- Image -->
+          <div class="form-group"
+          ng-class="{ 'has-error' : postForm.image.$invalid && !postForm.image.$pristine,
+          'has-success' : postForm.image.$vaild}">
+          <label>Image</label>
+          <input type="url" name="image" class="form-control" ng-model="post.image" required>
+          </div>
+          <!-- Description -->
+          <div class="form-group"
+          ng-class="{ 'has-error': postForm.description.$invalid && !postForm.description.$pristine,
+          'has-success' : postForm.description.$vaild}">
+          <label>Description</label>
+          <input type="text" name="description" class="form-control" ng-model="post.description" ng-minlength="10" required>
+          </div>
+          <!-- SUBMIT BUTTON -->
+          <button type="submit" class="btn btn-primary" ng-click='togglePostView()' ng-disabled="postForm.$invalid">Submit</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+<!-- POSTS View -->
+  <div class="container-fluid" ng-cloak>
+     <div class="row">
+       <ul class='col-lg-10 col-lg-offset-1 col-md-10 col-md-offset-1'>
+        <li ng-repeat="post in posts | filter: searchText | orderBy: dropdown" class=" posts col-lg-12">
+          <img ng-src="{{post.image}}" alt="" class="col-lg-3">
+        <h4>{{post.title}} &nbsp;&nbsp;|&nbsp;&nbsp;
+            <i class="fa fa-arrow-up" aria-hidden="true" ng-click='upvote(post)'></i>
+            <span ng-class='{ green: post.score > 0, red: post.score < 0}'> {{ post.score }}</span>
+            <i class="fa fa-arrow-down" aria-hidden="true" ng-click='downvote(post)'></i>
+        </h4>
+        <p class="author">Written By: {{post.author}}</p>
+        <br>
+        <p> {{post.description}} </p>
+        <br><br>
+        <p>
+          <!--  DATE of POST-->
+          <i class="fa fa-calender" aria-hidden="true"></i> {{post.date | date:'fullDate'}} &nbsp;&nbsp;|&nbsp;&nbsp;
+          <!--  COMMENTS of POST-->
+          <i class="fa fa-comments-o" aria-hidden="true"></i> {{post.comments.length}}
+            <a href="" ng-click='commentView=true'>
+              <ng-pluralize count="post.comments.length" when="{ '1': 'Comment', 'other': 'Comments'}">
+            </a> &nbsp;&nbsp;|&nbsp;&nbsp;
+          <!--  ADD COMMENT-->
+          <i class="fa fa-pencil-square-o" aria-hidden="true"></i><a href="" ng-click="commentView=true"> Add Comment</a>
+        </p>
+        <p>
+        <br><br>
+        <div class="col-lg-12" ng-show="commentView" id="comment-view" >
+        <p class="text-center"> ------- <a href="" ng-click="commentView=false"> Collapse Comments</a> ----- </p></p>
+
+
+
+        <form name='post.commentForm' ng-submit="addComment(post)">
+          <!-- ADD Comment-->
+          <label for="comment">Comment </label>
+          <input type="text" name="comment" ng-model="post.formComment.comment" required>
+
+          <!-- ADD Comment author -->
+          <label for="author">Author </label>
+          <input type="text" name="author" ng-model="post.formComment.author" required>
+
+          <input type="submit" name="name" value="Submit">
+        </form>
+
+            <ul ng-repeat="data in post.comments">
+              <li>
+                <p> "{{ data.comment }}"</p>
+                <small>{{ data.date | date: 'fullDate'}}</small><br>
+                <small> - {{data.author}}</small><br><br>
+            </li>
+          </ul>
+        </div>
+      </li>
+    </ul>
+  </div>
+</div>
+
+
+    <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+      <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+      <!-- Include all compiled plugins (below), or include individual files as needed -->
+      <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+      <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.5/angular.js"></script>
+    <!-- My App JS -->
+    <script type="text/javascript" src="app.js"></script>
+  </body>
+</html>
